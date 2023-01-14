@@ -185,7 +185,7 @@ func (ec *EvalContext) PostStatus(ctx context.Context, state, message string) {
 
 	status := github.RepoStatus{
 		State:       &state,
-		Context:     github.String(fmt.Sprintf("%s: %s", ec.Options.StatusCheckContext, base)),
+		Context:     github.String(StatusName(ec.Options, base)),
 		Description: &message,
 		TargetURL:   &detailsURL,
 	}
@@ -209,4 +209,12 @@ func (ec *EvalContext) PostStatus(ctx context.Context, state, message string) {
 			logger.Err(err).Msg("Failed to post insecure repo status")
 		}
 	}
+}
+
+func StatusName(eo *PullEvaluationOptions, branch string) string {
+	if eo.HideBranchName {
+		return eo.StatusCheckContext
+	}
+
+	return fmt.Sprintf("%s: %s", eo.StatusCheckContext, branch)
 }

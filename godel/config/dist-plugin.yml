@@ -7,7 +7,7 @@ products:
     build:
       output-dir: build
       main-pkg: .
-      version-var: github.com/palantir/policy-bot/version.version
+      version-var: main.version
       environment:
         CGO_ENABLED: "0"
       os-archs:
@@ -41,8 +41,8 @@ products:
             cp -R docker/* ${CONTEXT_DIR}
             cp -R config ${CONTEXT_DIR}
           tag-templates:
-            version: "{{Repository}}palantirtechnologies/policy-bot:{{Version}}"
-            latest: "{{Repository}}palantirtechnologies/policy-bot:latest"
-            snapshot: "{{Repository}}palantirtechnologies/policy-bot:snapshot"
+            version: "{{Repository}}adhp/policy-bot:{{Version}}"
+            latest: "{{Repository}}adhp/policy-bot:latest"
+            snapshot: "{{Repository}}adhp/policy-bot:snapshot"
     publish:
       group-id: com.palantir.policy-bot

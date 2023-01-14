@@ -35,6 +35,10 @@ type PullEvaluationOptions struct {
 	// pattern: <StatusCheckContext>: <Base Branch Name>
 	StatusCheckContext string `yaml:"status_check_context"`
 
+	// HideBranchName will hide the branch name from the status context. This is useful if you want to
+	// use a single status context for all branches with predictable branch rules.
+	HideBranchName bool `yaml:"hide_branch_name"`
+
 	// PostInsecureStatusChecks enables the sending of a second status using just StatusCheckContext as the context,
 	// no templating. This is turned off by default. This is to support legacy workflows that depend on the original
 	// context behaviour, and will be removed in 2.0

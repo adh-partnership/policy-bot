@@ -12,45 +12,10 @@ on:
     types: [published]
 
 jobs:
-  Verify:
-    runs-on: ubuntu-latest
-
-    env:
-      GOPATH: /home/runner/go
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set Go version
-      id: go_version
-      run: |
-        GO_VERSION=$(cat .palantir/go-version | sed 's/^go//' )
-        echo "::set-output name=version::${GO_VERSION}"
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ steps.go_version.outputs.version }}
-
-    - name: Cache Godel assets
-      uses: actions/cache@v2
-      with:
-        path: ~/.godel
-        key: ${{ runner.os }}-godel-${{ hashFiles('godelw', 'godel/config/godel.yml') }}
-        restore-keys: |
-          ${{ runner.os }}-godel-
-
-    - name: Verify
-      run: ./godelw verify --apply=false
-
   Dist:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs:
-      - Verify
 
     env:
       GOPATH: /home/runner/go
@@ -63,7 +28,7 @@ jobs:
     - name: Set Go version
       id: go_version
       run: |
-        GO_VERSION=$(cat .palantir/go-version | sed 's/^go//' )
+        GO_VERSION=$(cat .gover | sed 's/^go//' )
         echo "::set-output name=version::${GO_VERSION}"
 
     - name: Set up Go
@@ -104,33 +69,13 @@ jobs:
     - name: Build Docker image
       run: ./godelw docker build --verbose
 
-    - name: Archive distribution
-      uses: actions/upload-artifact@v2
-      with:
-        name: dist
-        path: |
-          build/policy-bot/*/bin/*.tgz
-
-    #
-    # Steps after this point should only run when publishing
-    # Include them here to avoid exporting the Docker container as an artifact
-    #
-
     - name: Login to Docker Hub
       if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
       uses: docker/login-action@v1
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Push snapshot image to Docker Hub
+    - name: Push image to Docker Hub
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
-      run: ./godelw docker push --tags=snapshot
-
-    - name: Push release image to Docker Hub
-      if: ${{ github.event_name == 'release' }}
-      run: ./godelw docker push --tags=latest,version
-
-    - name: Publish release assets
-      if: ${{ github.event_name == 'release' }}
-      run: ./godelw publish github --add-v-prefix --api-url=${GITHUB_API_URL} --user=palantir --repository=policy-bot --token=${{ secrets.GITHUB_TOKEN }}
+      run: ./godelw docker push --tags=snapshot,latest,version
